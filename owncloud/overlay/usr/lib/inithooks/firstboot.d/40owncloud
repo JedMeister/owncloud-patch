@@ -1,0 +1,10 @@
+#!/bin/bash -e
+# ownCloud firstboot config file
+
+# set wnCloud admin username and password
+
+. /etc/default/inithooks
+
+[ -e $INITHOOKS_CONF ] && . $INITHOOKS_CONF
+
+$INITHOOKS_PATH/bin/owncloud.py --pass="$APP_PASS" --user="$APP_USERNAME"

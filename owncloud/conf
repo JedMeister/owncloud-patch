@@ -1,0 +1,68 @@
+#!/bin/bash -ex
+
+# ownCloud TKLPatch v0.1 by JedMeister (Jeremy Davis)
+# To be applied to TKL LAMP v11.x (tested on v11.3)
+#
+
+install()
+{
+    apt-get update
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+        -o DPkg::Options::=--force-confdef \
+        -o DPkg::Options::=--force-confold \
+        install $@
+}
+
+HOSTNAME=owncloud
+
+# create and import blank database
+service mysql start
+mysqladmin -u root create owncloud
+mysql -u root owncloud<owncloud-usr.sql
+mysql -u root owncloud<owncloud-setup.sql
+
+# set hostname
+echo "$HOSTNAME" > /etc/hostname
+sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
+
+# install required php module
+install php5-gd
+
+# download ownCloud from git
+cd /var/www
+git clone git://gitorious.org/owncloud/owncloud.git
+
+# disable default apache sites and enable ownCloud standalone
+a2dissite default
+a2ensite owncloud-standalone
+
+# enable rewrite module so .htaccess works
+#a2enmod rewrite
+
+# overwrite default ownCloud conf file
+mv config.php /var/www/owncloud/config/
+
+# add rewrite to force https (.htaccess)
+#echo >> /var/www/owncloud/.htaccess
+#echo >> /var/www/owncloud/.htaccess
+#echo "#Force https" >> /var/www/owncloud/.htaccess
+#echo "RewriteCond %{HTTPS} off" >> /var/www/owncloud/.htaccess
+#echo "RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}" >> /var/www/owncloud/.htaccess
+
+# ensure ownership of owncloud by webserver
+chown -R www-data:www-data /var/www/owncloud
+
+# shutdown services so patch finishes cleanly
+service apache2 stop
+service mysql stop
+
+# cleanup
+cd /var/www
+rm -f owncloud-usr.sql
+rm -f owncloud-setup.sql
+cd /var/www/owncloud
+rm -rf .git
+rm -f .gitignore
+apt-get clean
+
+# end

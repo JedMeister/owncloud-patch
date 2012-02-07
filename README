@@ -1,0 +1,7 @@
+ownCloud is something of a 'dropbox' type file sync, but hosted from your own server. It has some interesting features.
+
+This patch pulls the latest stable from the ownCloud git repo. Currently that is v3.0
+
+Website: http://owncloud.org
+
+Documentaion for useage: http://owncloud.org/support/usage
